@@ -1,0 +1,81 @@
+from django.shortcuts import render
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+from .langchain_nvidia import get_nvidia_response
+from .models import ChatMessage
+
+
+def home(request):
+    """Render the chat interface"""
+    return render(request, 'chatbot/home.html')
+
+
+@csrf_exempt
+def chat(request):
+    """Handle chat with NVIDIA AI"""
+    if request.method == 'POST':
+        try:
+            # Get user message
+            data = json.loads(request.body)
+            user_message = data.get('message', '').strip()
+            
+            # Validate input
+            if not user_message:
+                return JsonResponse({
+                    'error': 'Please enter a message',
+                    'status': 'error'
+                }, status=400)
+            
+            # Get AI response from NVIDIA
+            bot_response = get_nvidia_response(user_message)
+            
+            # Save to database
+            try:
+                ChatMessage.objects.create(
+                    user_message=user_message,
+                    bot_response=bot_response
+                )
+            except Exception as db_error:
+                print(f"Database error: {db_error}")
+                # Continue even if save fails
+            
+            # Return response
+            return JsonResponse({
+                'response': bot_response,
+                'status': 'success'
+            })
+            
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'error': 'Invalid request',
+                'status': 'error'
+            }, status=400)
+        except Exception as e:
+            return JsonResponse({
+                'error': str(e),
+                'status': 'error'
+            }, status=500)
+    
+    return JsonResponse({
+        'error': 'Only POST allowed',
+        'status': 'error'
+    }, status=405)
+
+
+def test_nvidia(request):
+    """Test NVIDIA connection"""
+    try:
+        test_msg = get_nvidia_response("Say 'Hello! I am working correctly!' in one sentence.")
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': 'NVIDIA API is working!',
+            'model': 'nvidia/llama-3.1-nemotron-nano-8b-v1',
+            'test_response': test_msg
+        })
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
