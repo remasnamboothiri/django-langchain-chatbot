@@ -1,6 +1,10 @@
+import warnings
 from langchain_nvidia_ai_endpoints import ChatNVIDIA
 from langchain.schema import HumanMessage, SystemMessage
 from decouple import config
+
+# Suppress the specific warning
+warnings.filterwarnings('ignore', message='.*type is unknown.*')
 
 def get_nvidia_response(user_message):
     """
@@ -17,8 +21,8 @@ def get_nvidia_response(user_message):
         if not nvidia_api_key:
             return "⚠️ NVIDIA API key not found. Please add NVIDIA_API_KEY=nvapi-your-key to your .env file!"
         
-        if not nvidia_api_key.startswith('nvapi-'):
-            return "⚠️ Invalid NVIDIA API key format. Key should start with 'nvapi-'"
+        #if not nvidia_api_key.startswith('nvapi-'):
+            #return "⚠️ Invalid NVIDIA API key format. Key should start with 'nvapi-'"
         
         # Initialize ChatNVIDIA with CORRECT MODEL NAME!
         # FORMAT: publisher/model-name (MUST match exactly!)
@@ -31,7 +35,7 @@ def get_nvidia_response(user_message):
         
         # Create messages
         messages = [
-            SystemMessage(content="You are a helpful, friendly AI assistant. Keep responses clear and conversational."),
+            SystemMessage(content="You are a helpful, friendly AI assistant. "),
             HumanMessage(content=user_message)
         ]
         
