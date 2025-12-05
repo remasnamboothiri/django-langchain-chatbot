@@ -63,19 +63,3 @@ def chat(request):
     }, status=405)
 
 
-def test_nvidia(request):
-    """Test NVIDIA connection"""
-    try:
-        test_msg = get_nvidia_response("Say 'Hello! I am working correctly!' in one sentence.")
-        
-        return JsonResponse({
-            'status': 'success',
-            'message': 'NVIDIA API is working!',
-            'model': 'nvidia/llama-3.1-nemotron-nano-8b-v1',
-            'test_response': test_msg
-        })
-    except Exception as e:
-        return JsonResponse({
-            'status': 'error',
-            'message': str(e)
-        }, status=500)
